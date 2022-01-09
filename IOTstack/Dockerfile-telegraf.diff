@@ -1,0 +1,16 @@
+diff --git a/.templates/telegraf/Dockerfile b/.templates/telegraf/Dockerfile
+index 2a08f77..9c2cc6a 100644
+--- a/.templates/telegraf/Dockerfile
++++ b/.templates/telegraf/Dockerfile
+@@ -4,6 +4,12 @@ FROM telegraf:latest
+ # Add support tool
+ RUN apt update && apt install -y rsync
+
++# Install Python
++RUN apt-get update && apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-wheel build-essential && \
++    apt-get clean
++RUN pip3 install --no-cache-dir requests
++RUN pip3 install --no-cache-dir pytz
++
+ # where IOTstack template files are stored
+ ENV IOTSTACK_DEFAULTS_DIR="iotstack_defaults"

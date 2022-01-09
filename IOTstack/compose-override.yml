@@ -1,0 +1,30 @@
+services:
+
+  influxdb:
+    ports: []
+    environment:
+    - INFLUXDB_HTTP_FLUX_ENABLED=true
+    - INFLUXDB_REPORTING_DISABLED=false
+    - INFLUXDB_HTTP_AUTH_ENABLED=false
+    - INFLUX_USERNAME=dba
+    - INFLUX_PASSWORD=supremo
+    - INFLUXDB_UDP_ENABLED=false
+    - INFLUXDB_UDP_BIND_ADDRESS=0.0.0.0:8086
+    - INFLUXDB_UDP_DATABASE=udp
+
+  telegraf:
+    ports: []
+    environment:
+    - TZ=MST7MDT
+    - HOST_SYS=/hostfs/sys
+    - HOST_PROC=/hostfs/proc
+    - HOST_ETC=/hostfs/etc
+    - HOST_VAR=/hostfs/var
+    - HOST_RUN=/hostfs/run
+    - HOST_MOUNT_PREFIX=/hostfs
+    volumes:
+    - ./volumes/telegraf/:/etc/telegraf
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /:/hostfs:ro
+    depends_on:
+    - influxdb
