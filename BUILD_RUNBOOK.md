@@ -32,7 +32,9 @@ Set the time zone using `raspi-config` (Localisation Options)
 
 - Change the `pi` user password:
 
-`passwd`
+```
+passwd
+```
 
 # Prep and install containers
 
@@ -40,11 +42,15 @@ For ease of use, [IOTstack](https://github.com/SensorsIot/IOTstack)—a Docker s
 
 Clone IOTstack into `/home/pi/IOTstack`:
 
-`git clone https://github.com/SensorsIot/IOTstack.git ~/IOTstack`
+```
+git clone https://github.com/SensorsIot/IOTstack.git ~/IOTstack
+```
 
 Create the customization yaml for IOTstack:
 
-`cp ~/solaredge_monitoring/IOTstack/compose-override.yml ~/IOTstack`
+```
+cp ~/solaredge_monitoring/IOTstack/compose-override.yml ~/IOTstack
+```
 
 Apply the diff to the telegraf Dockerfile. The diff provides the necessary commands to install python3 inside the telegraf container which is needed to run the `solarEdgeCloudScraper.py` script later on.
 
@@ -93,11 +99,15 @@ $ sudo apt install libseccomp2 -t buster-backports
 
 Overwrite the supplied Telegraf config file with the one from this repo.
 
-`cp ~/solaredge_monitoring/telegraf/telegraf.conf ~/IOTstack/volumes/telegraf`
+```
+cp ~/solaredge_monitoring/telegraf/telegraf.conf ~/IOTstack/volumes/telegraf
+```
 
 Install the script which pulls data from the SolarEdge API:
 
-`cp ~/solaredge_monitoring/telegraf/solarEdgeCloudScarper.py ~/IOTstack/volumes/telegraf`
+```
+cp ~/solaredge_monitoring/telegraf/solarEdgeCloudScarper.py ~/IOTstack/volumes/telegraf
+```
 
 - Make the script executable and not publicly readable `chmod 700 ~/IOTstack/volumes/telegraf/solarEdgeCloudScarper.py`
 - Edit the script and fill in `SETTING_API_KEY` with your SolarEdge web portal API key. The key is configurable within the portal under Admin, Site Access.
@@ -126,7 +136,9 @@ docker-compose up -d
 
 Connect to InfluxDB using the `influx` command.
 
-`docker exec -it influxdb influx`
+```
+docker exec -it influxdb influx
+```
 
 Create the databases by pasting the contents of [create.sql](influxdb/create.sql) into the influx shell. Three databases will be created:
 
@@ -186,7 +198,9 @@ Import historical SolarEdge data by scraping the SolarEdge API. This is a one-ti
 
 Copy the "one time" telegraf config file into the telegraf container:
 
-`cp ~/solaredge_monitoring/telegraf/telegraf-onetime-solaredge-history.conf ~/IOTstack/volumes/telegraf`
+```
+cp ~/solaredge_monitoring/telegraf/telegraf-onetime-solaredge-history.conf ~/IOTstack/volumes/telegraf
+```
 
 Import the data using telegraf:
 
