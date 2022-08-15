@@ -389,9 +389,8 @@ def get_data_api(site: str, startTime: datetime, endTime: datetime):
                 conditionalData += format_L_data(value['L2Data'], 'L2')
             if 'L3Data' in value:
                 conditionalData += format_L_data(value['L3Data'], 'L3')
-            print(
-                f'data,site={site},sn={serial} I_Temp={value["temperature"]},I_AC_Energy_WH={value["totalEnergy"]},I_AC_Power={value["totalActivePower"]}{conditionalData} {to_unix_timestamp(date)}',
-                flush=False)
+            from pprint import pprint as pp
+            pp(value)
     return True
 
 
