@@ -278,23 +278,23 @@ def ensure_logged_in(session: requests.Session, function):
 
 def update_all_data(endTime: datetime.datetime):
     playbackTimeStamps = LAST_UPDATES['playback']
-    for site in SITE_IDS:
-        if HAS_OPTIMIZERS[site]:
-            nr_days = max((endTime - playbackTimeStamps[site]).days,
-                          7)  # API only supports up to 1 week history
-            days = [0]
-            if nr_days != 1:
-                days = list(range(-nr_days, 0, 1))
-            if get_playback_data_site(days, site):
-                playbackTimeStamps[site] = endTime
-    powerTimeStamps = LAST_UPDATES['power']
-    for site in SITE_IDS:
-        if get_power_api(site, powerTimeStamps[site], endTime):
-            powerTimeStamps[site] = endTime
-    energyTimeStamps = LAST_UPDATES['energy']
-    for site in SITE_IDS:
-        if get_energy_api(site, energyTimeStamps[site], endTime):
-            energyTimeStamps[site] = endTime
+    # for site in SITE_IDS:
+    #     if HAS_OPTIMIZERS[site]:
+    #         nr_days = max((endTime - playbackTimeStamps[site]).days,
+    #                       7)  # API only supports up to 1 week history
+    #         days = [0]
+    #         if nr_days != 1:
+    #             days = list(range(-nr_days, 0, 1))
+    #         if get_playback_data_site(days, site):
+    #             playbackTimeStamps[site] = endTime
+    # powerTimeStamps = LAST_UPDATES['power']
+    # for site in SITE_IDS:
+    #     if get_power_api(site, powerTimeStamps[site], endTime):
+    #         powerTimeStamps[site] = endTime
+    # energyTimeStamps = LAST_UPDATES['energy']
+    # for site in SITE_IDS:
+    #     if get_energy_api(site, energyTimeStamps[site], endTime):
+    #         energyTimeStamps[site] = endTime
     dataTimeStamps = LAST_UPDATES['data']
     for site in SITE_IDS:
         if get_data_api(site, dataTimeStamps[site], endTime):
