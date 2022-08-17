@@ -278,23 +278,23 @@ def ensure_logged_in(session: requests.Session, function):
 
 def update_all_data(endTime: datetime.datetime):
     playbackTimeStamps = LAST_UPDATES['playback']
-    # for site in SITE_IDS:
-    #     if HAS_OPTIMIZERS[site]:
-    #         nr_days = max((endTime - playbackTimeStamps[site]).days,
-    #                       7)  # API only supports up to 1 week history
-    #         days = [0]
-    #         if nr_days != 1:
-    #             days = list(range(-nr_days, 0, 1))
-    #         if get_playback_data_site(days, site):
-    #             playbackTimeStamps[site] = endTime
-    # powerTimeStamps = LAST_UPDATES['power']
-    # for site in SITE_IDS:
-    #     if get_power_api(site, powerTimeStamps[site], endTime):
-    #         powerTimeStamps[site] = endTime
-    # energyTimeStamps = LAST_UPDATES['energy']
-    # for site in SITE_IDS:
-    #     if get_energy_api(site, energyTimeStamps[site], endTime):
-    #         energyTimeStamps[site] = endTime
+    for site in SITE_IDS:
+        if HAS_OPTIMIZERS[site]:
+            nr_days = max((endTime - playbackTimeStamps[site]).days,
+                          7)  # API only supports up to 1 week history
+            days = [0]
+            if nr_days != 1:
+                days = list(range(-nr_days, 0, 1))
+            if get_playback_data_site(days, site):
+                playbackTimeStamps[site] = endTime
+    powerTimeStamps = LAST_UPDATES['power']
+    for site in SITE_IDS:
+        if get_power_api(site, powerTimeStamps[site], endTime):
+            powerTimeStamps[site] = endTime
+    energyTimeStamps = LAST_UPDATES['energy']
+    for site in SITE_IDS:
+        if get_energy_api(site, energyTimeStamps[site], endTime):
+            energyTimeStamps[site] = endTime
     dataTimeStamps = LAST_UPDATES['data']
     for site in SITE_IDS:
         if get_data_api(site, dataTimeStamps[site], endTime):
@@ -376,21 +376,39 @@ def get_data_api(site: str, startTime: datetime, endTime: datetime):
             return False
 
         # Parse request
-        for value in r.json()['data']['telemetries']:
-            date = value['date']
-            # Note: not all data is logged; see Json/API for all available options
-            conditionalData = ''
-            dcVoltage = value['dcVoltage']
-            if dcVoltage is not None:
-                conditionalData += f",I_DC_Voltage={dcVoltage}"
-            if 'L1Data' in value:
-                conditionalData += format_L_data(value['L1Data'], 'L1')
-            if 'L2Data' in value:
-                conditionalData += format_L_data(value['L2Data'], 'L2')
-            if 'L3Data' in value:
-                conditionalData += format_L_data(value['L3Data'], 'L3')
-            from pprint import pprint as pp
-            pp(value)
+        try:
+            j = r.json()
+        except requests.exceptions.RequestsJSONDecodeError as e:
+            print_err(f"failed to decode JSON in API response: {r.url}: {e}")
+            continue
+        if "data" not in j or "telemetries" not in j["data"]:
+            print_err(
+                f"API response is missing 'data' or 'telemetries' objects; ignoring:"
+                f" {r.url}: {j}"
+            )
+            continue
+        for value in j['data']['telemetries']:
+            try:
+                date = value['date']
+                # Note: not all data is logged; see Json/API for all available options
+                conditionalData = ''
+                dcVoltage = value['dcVoltage']
+                if dcVoltage is not None:
+                    conditionalData += f",I_DC_Voltage={dcVoltage}"
+                if 'L1Data' in value:
+                    conditionalData += format_L_data(value['L1Data'], 'L1')
+                if 'L2Data' in value:
+                    conditionalData += format_L_data(value['L2Data'], 'L2')
+                if 'L3Data' in value:
+                    conditionalData += format_L_data(value['L3Data'], 'L3')
+                print(
+                    f'data,site={site},sn={serial} I_Temp={value["temperature"]},I_AC_Energy_WH={value["totalEnergy"]},I_AC_Power={value["totalActivePower"]}{conditionalData} {to_unix_timestamp(date)}',
+                    flush=False)
+            except KeyError as e:
+                print_err(
+                    f"API response is missing certain fields; ignoring: {r.url}: {e}"
+                )
+                continue
     return True
 
 
