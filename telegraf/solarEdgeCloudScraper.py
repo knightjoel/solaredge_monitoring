@@ -376,22 +376,39 @@ def get_data_api(site: str, startTime: datetime, endTime: datetime):
             return False
 
         # Parse request
-        for value in r.json()['data']['telemetries']:
-            date = value['date']
-            # Note: not all data is logged; see Json/API for all available options
-            conditionalData = ''
-            dcVoltage = value['dcVoltage']
-            if dcVoltage is not None:
-                conditionalData += f",I_DC_Voltage={dcVoltage}"
-            if 'L1Data' in value:
-                conditionalData += format_L_data(value['L1Data'], 'L1')
-            if 'L2Data' in value:
-                conditionalData += format_L_data(value['L2Data'], 'L2')
-            if 'L3Data' in value:
-                conditionalData += format_L_data(value['L3Data'], 'L3')
-            print(
-                f'data,site={site},sn={serial} I_Temp={value["temperature"]},I_AC_Energy_WH={value["totalEnergy"]},I_AC_Power={value["totalActivePower"]}{conditionalData} {to_unix_timestamp(date)}',
-                flush=False)
+        try:
+            j = r.json()
+        except requests.exceptions.RequestsJSONDecodeError as e:
+            print_err(f"failed to decode JSON in API response: {r.url}: {e}")
+            continue
+        if "data" not in j or "telemetries" not in j["data"]:
+            print_err(
+                f"API response is missing 'data' or 'telemetries' objects; ignoring:"
+                f" {r.url}: {j}"
+            )
+            continue
+        for value in j['data']['telemetries']:
+            try:
+                date = value['date']
+                # Note: not all data is logged; see Json/API for all available options
+                conditionalData = ''
+                dcVoltage = value['dcVoltage']
+                if dcVoltage is not None:
+                    conditionalData += f",I_DC_Voltage={dcVoltage}"
+                if 'L1Data' in value:
+                    conditionalData += format_L_data(value['L1Data'], 'L1')
+                if 'L2Data' in value:
+                    conditionalData += format_L_data(value['L2Data'], 'L2')
+                if 'L3Data' in value:
+                    conditionalData += format_L_data(value['L3Data'], 'L3')
+                print(
+                    f'data,site={site},sn={serial} I_Temp={value["temperature"]},I_AC_Energy_WH={value["totalEnergy"]},I_AC_Power={value["totalActivePower"]}{conditionalData} {to_unix_timestamp(date)}',
+                    flush=False)
+            except KeyError as e:
+                print_err(
+                    f"API response is missing certain fields; ignoring: {r.url}: {e}"
+                )
+                continue
     return True
 
 
